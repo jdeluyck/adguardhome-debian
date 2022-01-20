@@ -3,7 +3,7 @@ Version: {{version}}
 Priority: standard
 Section: contrib
 Architecture: {{architecture}}
-Maintainer: Jan De Luyck <jan@kcore.org>
+Maintainer: Jan De Luyck <jan-debpackages@kcore.org>
 Installed-Size: {{size}}
 Homepage: https://github.com/AdguardTeam/AdGuardHome
 Description: Network-wide ads & trackers blocking DNS server
