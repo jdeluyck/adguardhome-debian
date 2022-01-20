@@ -1,9 +1,9 @@
 Package: adguardhome
 Version: {{version}}
 Priority: standard
-Section: misc
+Section: contrib
 Architecture: {{architecture}}
-Maintainer: Andoni del Olmo <andoni.delolmo@gmail.com>
+Maintainer: Jan De Luyck <jan@kcore.org>
 Installed-Size: {{size}}
 Homepage: https://github.com/AdguardTeam/AdGuardHome
 Description: Network-wide ads & trackers blocking DNS server
