@@ -1,1 +1,2 @@
 /etc/opt/adguardhome.yaml
+/etc/sysctl.d/99-adguardhome.conf
