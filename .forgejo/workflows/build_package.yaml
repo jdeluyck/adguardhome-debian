@@ -59,6 +59,8 @@ jobs:
             echo "New version found, building." 
             echo "new_version=${LATEST_UPSTREAM_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
+          echo ${FORGEJO_WORKSPACE}
+          echo ${GITHUB_WORKSPACE}
 
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
@@ -73,9 +75,6 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.version_check.outputs.new_version }}
         run: |
-          echo "env: ${NEW_VERSION}"
-          echo "env interpolated: ${{steps.version_check.outputs.new_version }}"
-
           for ARCH in ${ARCHS}; do
             echo "Building ${NEW_VERSION} for ${ARCH}"
             make VERSION="${NEW_VERSION}" ARCH="${ARCH}"
