@@ -1,5 +1,5 @@
 [Unit]
-Description=Network-wide ads & trackers blocking DNS server
+Description=AdGuardHome - Network-wide ads & trackers blocking DNS server
 ConditionFileIsExecutable=/opt/adguardhome/AdGuardHome
 After=network-online.target
 StartLimitIntervalSec=5
