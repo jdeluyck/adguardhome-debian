@@ -37,7 +37,7 @@ jobs:
       - name: Check AdGuardHome version
         id: version_check
         run: |
-          LATEST_UPSTREAM_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/${TEAM}/${PROJECT}/releases/latest | jq -r '.tag_name | gsub("v";"")')
+          LATEST_UPSTREAM_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/AdGuardTeam/AdGuardHome/releases/latest | jq -r '.tag_name | gsub("v";"")')
 
           if [ -z "$LATEST_UPSTREAM_VERSION" ]; then
             echo "Error fetching AdGuardHome latest tag from GitHub"
