@@ -1,4 +1,4 @@
-name: Update AdGuardHome repo
+name: Update AdGuardHome Debian repo
 
 on: 
   schedule:
@@ -10,7 +10,7 @@ env:
   ARCHS: "i386 amd64 arm64 armhf"
   SECTION: "contrib"
   REPO_DIR: "repo"
-  DIST_DIR: "dist/stable"
+  DIST_DIR: "dists/stable"
   RELEASE_DIR: "build/release"
 
 jobs:
