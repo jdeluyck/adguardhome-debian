@@ -105,6 +105,11 @@ for ARCH in ${ARCHS}; do
 
 done
 
+if [ -e .force ]; then
+  rm .force
+  REBUILD_REPO=1
+fi
+
 if [ ${REBUILD_REPO} -ne 0 ]; then
 
   cd ${REPO_DIR}
