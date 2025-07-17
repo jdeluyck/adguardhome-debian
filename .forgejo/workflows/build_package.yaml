@@ -119,11 +119,11 @@ jobs:
       - name: Update version file
         if: steps.version_check.outputs.new_version
         run: |
-          echo "${{ steps.version_check.outputs.new_version }}" > LATEST_BUILD_VERSION
+          echo "${{ steps.version_check.outputs.new_version }}" > LATEST_PACKAGED_VERSION
 
           git config --global user.name "Forgejo action"
           git config --global user.email "actions@forgejo"
-          git add LATEST_BUILD_VERSION
+          git add LATEST_PACKAGED_VERSION
           git commit -m "Bump AdGuardHome version to ${{ steps.version_check.outputs.new_version }}"
           git push
 
