@@ -97,6 +97,7 @@ jobs:
             apt-ftparchive --arch ${ARCH} release ${ARCH_BIN_DIST_DIR} > ${ARCH_BIN_DIST_DIR}/Release  
            
             cd ${{ env.FORGEJO_WORKSPACE }} 
+          done
 
       - name: Create new repo Release file
         if: steps.version_check.outputs.new_version
