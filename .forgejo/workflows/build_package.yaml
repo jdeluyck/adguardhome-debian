@@ -60,8 +60,8 @@ jobs:
             echo "new_version=${LATEST_UPSTREAM_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
 
-        echo "github output"
-        echo "${GITHUB_OUTPUT}"
+          echo "github output"
+          echo "${GITHUB_OUTPUT}"
 
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
