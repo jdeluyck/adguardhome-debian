@@ -59,8 +59,6 @@ jobs:
             echo "New version found, building." 
             echo "new_version=${LATEST_UPSTREAM_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
-          echo ${FORGEJO_WORKSPACE}
-          echo ${GITHUB_WORKSPACE}
 
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
@@ -98,7 +96,7 @@ jobs:
             echo "Creating ${ARCH} Release"
             apt-ftparchive --arch ${ARCH} release ${ARCH_BIN_DIST_DIR} > ${ARCH_BIN_DIST_DIR}/Release  
            
-            cd ${FORGEJO_WORKSPACE} 
+            cd ${GITHUB_WORKSPACE} 
           done
 
       - name: Create new repo Release file
@@ -106,7 +104,7 @@ jobs:
         run: |
           cd ${REPO_DIR}
           echo "Creating new repo Releases file"
-          apt-ftparchive release -c ${FORGEJO_WORKSPACE}/release.conf ${DIST_DIR} > ${DIST_DIR}/Release
+          apt-ftparchive release -c ${GITHUB_WORKSPACE}/release.conf ${DIST_DIR} > ${DIST_DIR}/Release
             
       - name: Sign Release Files
         if: steps.version_check.outputs.new_version
