@@ -60,10 +60,6 @@ jobs:
             echo "new_version=${LATEST_UPSTREAM_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
 
-          echo "github output"
-          cat "${GITHUB_OUTPUT}"
-          exit 1
-
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
         run: |
@@ -77,6 +73,9 @@ jobs:
         env:
           NEW_VERSION=${{ steps.version_check.outputs.new_version }}
         run: |
+          echo "env: ${NEW_VERSION}"
+          echo "env interpolated: ${{steps.version_check.outputs.new_version }}"
+
           for ARCH in ${ARCHS}; do
             echo "Building ${NEW_VERSION} for ${ARCH}"
             make VERSION="${NEW_VERSION}" ARCH="${ARCH}"
