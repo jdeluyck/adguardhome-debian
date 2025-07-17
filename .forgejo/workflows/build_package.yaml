@@ -71,7 +71,7 @@ jobs:
       - name: Build new package
         if: steps.version_check.outputs.new_version
         env:
-          NEW_VERSION=${{ steps.version_check.outputs.new_version }}
+          NEW_VERSION: ${{ steps.version_check.outputs.new_version }}
         run: |
           echo "env: ${NEW_VERSION}"
           echo "env interpolated: ${{steps.version_check.outputs.new_version }}"
