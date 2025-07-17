@@ -31,20 +31,22 @@ jobs:
 
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.FORGEJO_TOKEN }}
 
       - name: Check AdGuardHome version
         id: version_check
         run: |
           LATEST_UPSTREAM_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/AdGuardTeam/AdGuardHome/releases/latest | jq -r '.tag_name | gsub("v";"")')
 
-          if [ -z "$LATEST_UPSTREAM_VERSION" ]; then
+          if [ -z "${LATEST_UPSTREAM_VERSION}" ]; then
             echo "Error fetching AdGuardHome latest tag from GitHub"
             exit 1
           fi
 
-          LATEST_PACKAGED_VERSION=$(cat LATEST_PACKAGED_VERSION}
+          if [ -e LATEST_PACKAGED_VERSION ]; then
+            LATEST_PACKAGED_VERSION=$(cat LATEST_PACKAGED_VERSION)
+          else
+            LATEST_PACKAGED_VERSION="NA"
+          fi
 
           echo "Latest Upstream AdGuardHome version: ${LATEST_UPSTREAM_VERSION}"
           echo "Latest Packaged AdguardHome Version: ${LATEST_PACKAGED_VERSION}"
