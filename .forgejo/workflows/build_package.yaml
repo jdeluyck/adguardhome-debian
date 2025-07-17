@@ -113,8 +113,8 @@ jobs:
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
 
           echo "Singing Release files"
-          gpg -a --yes --output ${DIST_DIR}/Release.gpg --local-user ${{ secrets.GPG_ID }} --detach-sign ${DIST_DIR}/Release
-          gpg -a --yes --clearsign --output ${DIST_DIR}/InRelease --local-user ${{ secrets.GPG_ID }} --detach-sign ${DIST_DIR}/Release
+          gpg -a --yes --output ${REPO_DIR}/${DIST_DIR}/Release.gpg --local-user ${{ secrets.GPG_ID }} --detach-sign ${REPO_DIR}/${DIST_DIR}/Release
+          gpg -a --yes --clearsign --output ${REPO_DIR}/${DIST_DIR}/InRelease --local-user ${{ secrets.GPG_ID }} --detach-sign ${REPO_DIR}/${DIST_DIR}/Release
 
       - name: Update version file
         if: steps.version_check.outputs.new_version
