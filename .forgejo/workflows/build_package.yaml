@@ -61,7 +61,8 @@ jobs:
           fi
 
           echo "github output"
-          echo "${GITHUB_OUTPUT}"
+          cat "${GITHUB_OUTPUT}"
+          exit 1
 
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
