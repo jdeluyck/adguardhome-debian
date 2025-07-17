@@ -53,7 +53,7 @@ jobs:
           echo "Latest Upstream AdGuardHome version: ${LATEST_UPSTREAM_VERSION}"
           echo "Latest Packaged AdGuardHome Version: ${LATEST_PACKAGED_VERSION}"
            
-          if [ "${LATEST_UPSTREAM_VERSION}" == "${LATEST_PACKAGED_VERSION}" ]; then
+          if [ "${LATEST_UPSTREAM_VERSION}" = "${LATEST_PACKAGED_VERSION}" ]; then
             echo "No new version found, exiting."
           else
             echo "New version found, building." 
