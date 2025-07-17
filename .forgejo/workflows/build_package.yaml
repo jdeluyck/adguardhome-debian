@@ -74,8 +74,8 @@ jobs:
           NEW_VERSION=${{ steps.version_check.outputs.new_version }}
         run: |
           for ARCH in ${ARCHS}; do
-            echo "Building for ${ARCH}"
-            make VERSION=${NEW_VERSION} ARCH=${ARCH}
+            echo "Building ${NEW_VERSION} for ${ARCH}"
+            make VERSION="${NEW_VERSION}" ARCH="${ARCH}"
 
             ARCH_BIN_DIST_DIR=${DIST_DIR}/${SECTION}/binary-${ARCH}
 
