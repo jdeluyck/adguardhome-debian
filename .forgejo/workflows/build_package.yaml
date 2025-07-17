@@ -19,14 +19,14 @@ jobs:
       image: debian:latest
 
     steps:
+      - name: Install dependencies
+        run: |
+          apt update && apt install -y curl jq dpkg-deb rsync openssh-client apt-utils gpg node
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.FORGEJO_TOKEN }}
-
-      - name: Install dependencies
-        run: |
-          apt update && apt install -y curl jq dpkg-deb rsync openssh-client apt-utils gpg
 
       - name: Check AdGuardHome version
         id: version_check
