@@ -75,13 +75,13 @@ jobs:
         run: |
           for ARCH in ${{ env.ARCHS }}; do
             echo "Building for ${ARCH}"
-            make VERSION=${{ env.NEW_VERSION }} ARCH=${ARCH}
+            make VERSION=${NEW_VERSION} ARCH=${ARCH}
 
             ARCH_BIN_DIST_DIR=${{ env.DIST_DIR }}/${{ env.SECTION }}/binary-${ARCH}
 
             mkdir -p ${{ env.REPO_DIR }}/${ARCH_BIN_DIST_DIR}
 
-            cp ${{ env.RELEASE_DIR }}/adguardhome_${{ env.NEW_VERSION }}_${ARCH}.deb ${{ env.REPO_DIR }}/pool/${{ env.SECTION }}
+            cp ${{ env.RELEASE_DIR }}/adguardhome_${NEW_VERSION}_${ARCH}.deb ${{ env.REPO_DIR }}/pool/${{ env.SECTION }}
 
             cd ${{ env.REPO_DIR }}
 
