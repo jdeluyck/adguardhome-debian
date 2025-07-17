@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          apt update && apt install -y curl jq dpkg-dev fakeroot rsync openssh-client apt-utils gpg nodejs wget
+          apt update && apt install -y curl jq dpkg-dev fakeroot rsync openssh-client apt-utils gpg nodejs wget git
 
       - name: Add CA cert
         run: |
@@ -65,7 +65,7 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
           chmod 600 private_key
-          rsync -avz --mkpath --delete  -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/ ${REPO_DIR}/
+          rsync -avz --mkpath --delete  -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/ ${GITHUB_WORKSPACE}/${REPO_DIR}/
           rm private_key
 
       - name: Build new package
@@ -79,11 +79,11 @@ jobs:
 
             ARCH_BIN_DIST_DIR=${DIST_DIR}/${SECTION}/binary-${ARCH}
 
-            mkdir -p ${REPO_DIR}/${ARCH_BIN_DIST_DIR}
+            mkdir -p ${GITHUB_WORKSPACE}/${REPO_DIR}/${ARCH_BIN_DIST_DIR}
 
-            cp ${RELEASE_DIR}/adguardhome_${NEW_VERSION}_${ARCH}.deb ${REPO_DIR}/pool/${SECTION}
+            cp ${RELEASE_DIR}/adguardhome_${NEW_VERSION}_${ARCH}.deb ${GITHUB_WORKSPACE}/${REPO_DIR}/pool/${SECTION}
 
-            cd ${REPO_DIR}
+            cd ${GITHUB_WORKSPACE}/${REPO_DIR}
 
             echo "Creating ${ARCH} Packages/Packages.gz"
             apt-ftparchive --arch ${ARCH} packages pool/${SECTION} > ${ARCH_BIN_DIST_DIR}/Packages
@@ -102,7 +102,7 @@ jobs:
       - name: Create new repo Release file
         if: steps.version_check.outputs.new_version
         run: |
-          cd ${REPO_DIR}
+          cd ${GITHUB_WORKSPACE}/${REPO_DIR}
           echo "Creating new repo Releases file"
           apt-ftparchive release -c ${GITHUB_WORKSPACE}/release.conf ${DIST_DIR} > ${DIST_DIR}/Release
             
@@ -113,8 +113,8 @@ jobs:
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
 
           echo "Singing Release files"
-          gpg -a --yes --output ${REPO_DIR}/${DIST_DIR}/Release.gpg --local-user ${{ secrets.GPG_ID }} --detach-sign ${REPO_DIR}/${DIST_DIR}/Release
-          gpg -a --yes --clearsign --output ${REPO_DIR}/${DIST_DIR}/InRelease --local-user ${{ secrets.GPG_ID }} --detach-sign ${REPO_DIR}/${DIST_DIR}/Release
+          gpg -a --yes --output ${GITHUB_WORKSPACE}/${REPO_DIR}/${DIST_DIR}/Release.gpg --local-user ${{ secrets.GPG_ID }} --detach-sign ${GITHUB_WORKSPACE}/${REPO_DIR}/${DIST_DIR}/Release
+          gpg -a --yes --clearsign --output ${GITHUB_WORKSPACE}/${REPO_DIR}/${DIST_DIR}/InRelease --local-user ${{ secrets.GPG_ID }} --detach-sign ${GITHUB_WORKSPACE}/${REPO_DIR}/${DIST_DIR}/Release
 
       - name: Update version file
         if: steps.version_check.outputs.new_version
@@ -132,6 +132,6 @@ jobs:
         run: |
          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
          chmod 600 private_key
-         rsync -avz --mkpath --delete -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${REPO_DIR}/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/
+         rsync -avz --mkpath --delete -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${GITHUB_WORKSPACE}/${REPO_DIR}/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/
          rm private_key
 
