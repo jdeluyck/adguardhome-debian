@@ -65,7 +65,7 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
           chmod 600 private_key
-          rsync -avz --mkpath --delete  -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/ ${{ env.REPO_DIR }}/
+          rsync -avz --mkpath --delete  -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/ ${REPO_DIR}/
           rm private_key
 
       - name: Build new package
@@ -73,45 +73,48 @@ jobs:
         env:
           NEW_VERSION=${{ steps.version_check.outputs.new_version }}
         run: |
-          for ARCH in ${{ env.ARCHS }}; do
+          for ARCH in ${ARCHS}; do
             echo "Building for ${ARCH}"
             make VERSION=${NEW_VERSION} ARCH=${ARCH}
 
-            ARCH_BIN_DIST_DIR=${{ env.DIST_DIR }}/${{ env.SECTION }}/binary-${ARCH}
+            ARCH_BIN_DIST_DIR=${DIST_DIR}/${SECTION}/binary-${ARCH}
 
-            mkdir -p ${{ env.REPO_DIR }}/${ARCH_BIN_DIST_DIR}
+            mkdir -p ${REPO_DIR}/${ARCH_BIN_DIST_DIR}
 
-            cp ${{ env.RELEASE_DIR }}/adguardhome_${NEW_VERSION}_${ARCH}.deb ${{ env.REPO_DIR }}/pool/${{ env.SECTION }}
+            cp ${RELEASE_DIR}/adguardhome_${NEW_VERSION}_${ARCH}.deb ${REPO_DIR}/pool/${SECTION}
 
-            cd ${{ env.REPO_DIR }}
+            cd ${REPO_DIR}
 
             echo "Creating ${ARCH} Packages/Packages.gz"
-            apt-ftparchive --arch ${ARCH} packages pool/${{ env.SECTION }} > ${ARCH_BIN_DIST_DIR}/Packages
+            apt-ftparchive --arch ${ARCH} packages pool/${SECTION} > ${ARCH_BIN_DIST_DIR}/Packages
             gzip -fk9 ${ARCH_BIN_DIST_DIR}/Packages
 
             echo "Creating ${ARCH} Contents/Contents.gz"
-            apt-ftparchive --arch ${ARCH} contents pool/${{ env.SECTION }} > ${{ env.DIST_DIR}}/${{ env.SECTION }}/Contents-${ARCH}
-            gzip -fk9 ${{ env.DIST_DIR}}/${{ env.SECTION }}/Contents-${ARCH}
+            apt-ftparchive --arch ${ARCH} contents pool/${SECTION} > ${DIST_DIR}/${SECTION}/Contents-${ARCH}
+            gzip -fk9 ${DIST_DIR}/${SECTION}/Contents-${ARCH}
 
             echo "Creating ${ARCH} Release"
             apt-ftparchive --arch ${ARCH} release ${ARCH_BIN_DIST_DIR} > ${ARCH_BIN_DIST_DIR}/Release  
            
-            cd ${{ env.FORGEJO_WORKSPACE }} 
+            cd ${FORGEJO_WORKSPACE} 
           done
 
       - name: Create new repo Release file
         if: steps.version_check.outputs.new_version
         run: |
-          cd ${{ env.REPO_DIR }}
+          cd ${REPO_DIR}
           echo "Creating new repo Releases file"
-          apt-ftparchive release -c ${{ env.FORGEJO_WORKSPACE }}/release.conf ${DIST_DIR} > ${DIST_DIR}/Release
+          apt-ftparchive release -c ${FORGEJO_WORKSPACE}/release.conf ${DIST_DIR} > ${DIST_DIR}/Release
             
       - name: Sign Release Files
         if: steps.version_check.outputs.new_version
         run: |
+          echo "Importing key"
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+
           echo "Singing Release files"
-          gpg -a --yes --output ${DIST_DIR}/Release.gpg --local-user ${GPG_ID} --detach-sign ${DIST_DIR}/Release
-          gpg -a --yes --clearsign --output ${DIST_DIR}/InRelease --local-user ${GPG_ID} --detach-sign ${DIST_DIR}/Release  
+          gpg -a --yes --output ${DIST_DIR}/Release.gpg --local-user ${{ secrets.GPG_ID }} --detach-sign ${DIST_DIR}/Release
+          gpg -a --yes --clearsign --output ${DIST_DIR}/InRelease --local-user ${{ secrets.GPG_ID }} --detach-sign ${DIST_DIR}/Release
 
       - name: Update version file
         if: steps.version_check.outputs.new_version
@@ -129,6 +132,6 @@ jobs:
         run: |
          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
          chmod 600 private_key
-         rsync -avz --mkpath --delete -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${{ env.REPO_DIR }}/ ${ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/
+         rsync -avz --mkpath --delete -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${REPO_DIR}/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/
          rm private_key
 
