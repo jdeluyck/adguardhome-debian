@@ -1,0 +1,123 @@
+on: 
+  schedule:
+    - cron: '0 */3 * * *'
+  # Allow manual runs from the actions tab
+  workflow_dispatch: {}
+
+env:
+  ARCHS: "i386 amd64 arm64 armhf"
+  SECTION: "contrib"
+  REPO_DIR: "repo"
+  DIST_DIR: "dist/stable"
+  RELEASE_DIR: "build/release"
+
+jobs:
+  test:
+    runs-on: docker
+
+    container: 
+      image: debian:latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+	  token: ${{ secrets.FORGEJO_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          apt update && apt install -y curl jq dpkg-deb rsync openssh-client apt-utils gpg
+
+      - name: Check AdGuardHome version
+        id: version_check
+        run: |
+          LATEST_UPSTREAM_VERSION=$(curl -L -s -H 'Accept: application/json' https://github.com/${TEAM}/${PROJECT}/releases/latest | jq -r '.tag_name | gsub("v";"")')
+
+          if [ -z "$LATEST_UPSTREAM_VERSION" ]; then
+            echo "Error fetching AdGuardHome latest tag from GitHub"
+            exit 1
+          fi
+
+          LATEST_PACKAGED_VERSION=$(cat LATEST_PACKAGED_VERSION}
+
+          echo "Latest Upstream AdGuardHome version: ${LATEST_UPSTREAM_VERSION}"
+          echo "Latest Packaged AdguardHome Version: ${LATEST_PACKAGED_VERSION}"
+           
+          if [ "${LATEST_UPSTREAM_VERSION" == "${LATEST_PACKAGED_VERSION}" ]; then
+            echo "No new version found, exiting."
+          else
+            echo "New version found, building." 
+            echo "new_version=${LATEST_UPSTREAM_VERSION}" >> ${GITHUB_OUTPUT}
+          fi
+
+      - name: Sync old repo
+        if: steps.version_check.outputs.new_version
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+          chmod 600 private_key
+          rsync -avz --mkpath --delete  -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/ ${{ env.REPO_DIR }}/
+          rm private_key
+
+      - name: Build new package
+        if: steps.version_check.outputs.new_version
+        env:
+          NEW_VERSION=${{ steps.version_check.outputs.new_version }}
+        run: |
+          for ARCH in ${{ env.ARCHS }}; do
+            echo "Building for ${ARCH}"
+            make VERSION=${{ env.NEW_VERSION }} ARCH=${ARCH}
+
+            ARCH_BIN_DIST_DIR=${{ env.DIST_DIR }}/${{ env.SECTION }}/binary-${ARCH}
+
+            mkdir -p ${{ env.REPO_DIR }}/${ARCH_BIN_DIST_DIR}
+
+            cp ${{ env.RELEASE_DIR }}/adguardhome_${{ env.NEW_VERSION }}_${ARCH}.deb ${{ env.REPO_DIR }}/pool/${{ env.SECTION }}
+
+            cd ${{ env.REPO_DIR }}
+
+            echo "Creating ${ARCH} Packages/Packages.gz"
+            apt-ftparchive --arch ${ARCH} packages pool/${{ env.SECTION }} > ${ARCH_BIN_DIST_DIR}/Packages
+            gzip -fk9 ${ARCH_BIN_DIST_DIR}/Packages
+
+            echo "Creating ${ARCH} Contents/Contents.gz"
+            apt-ftparchive --arch ${ARCH} contents pool/${{ env.SECTION }} > ${{ env.DIST_DIR}}/${{ env.SECTION }}/Contents-${ARCH}
+            gzip -fk9 ${{ env.DIST_DIR}}/${{ env.SECTION }}/Contents-${ARCH}
+
+            echo "Creating ${ARCH} Release"
+            apt-ftparchive --arch ${ARCH} release ${ARCH_BIN_DIST_DIR} > ${ARCH_BIN_DIST_DIR}/Release  
+           
+            cd ${{ env.FORGEJO_WORKSPACE }} 
+
+      - name: Create new repo Release file
+        if: steps.version_check.outputs.new_version
+        run: |
+          cd ${{ env.REPO_DIR }}
+          echo "Creating new repo Releases file"
+          apt-ftparchive release -c ${{ env.FORGEJO_WORKSPACE }}/release.conf ${DIST_DIR} > ${DIST_DIR}/Release
+            
+      - name: Sign Release Files
+        if: steps.version_check.outputs.new_version
+        run: |
+          echo "Singing Release files"
+          gpg -a --yes --output ${DIST_DIR}/Release.gpg --local-user ${GPG_ID} --detach-sign ${DIST_DIR}/Release
+          gpg -a --yes --clearsign --output ${DIST_DIR}/InRelease --local-user ${GPG_ID} --detach-sign ${DIST_DIR}/Release  
+
+      - name: Update version file
+        if: steps.version_check.outputs.new_version
+        run: |
+          echo "${{ steps.version_check.outputs.new_version }}" > LATEST_BUILD_VERSION
+
+          git config --global user.name "Forgejo action"
+          git config --global user.email "actions@forgejo"
+          git add LATEST_BUILD_VERSION
+          git commit -m "Bump AdGuardHome version to ${{ steps.version_check.outputs.new_version }}"
+          git push
+
+      - name: Sync deb repo
+        if: steps.version_check.outputs.new_version
+        run: |
+         echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+         chmod 600 private_key
+         rsync -avz --mkpath --delete -e "ssh -i private_key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}" ${{ env.REPO_DIR }}/ ${ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}/
+         rm private_key
+
