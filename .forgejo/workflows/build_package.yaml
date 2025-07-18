@@ -14,7 +14,8 @@ env:
   RELEASE_DIR: "build/release"
 
 jobs:
-  test:
+  check-and-deploy:
+    name: Check for new AdGuardHome and build package
     runs-on: docker
 
     container: 
