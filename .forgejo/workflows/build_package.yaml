@@ -21,9 +21,9 @@ jobs:
       image: debian:latest
 
     steps:
-      - name: Install dependencies
+      - name: Install basic dependencies
         run: |
-          apt update && apt install -y curl jq dpkg-dev fakeroot rsync openssh-client apt-utils gpg nodejs wget git
+          apt update && apt install -y curl jq nodejs
 
       - name: Add CA cert
         run: |
@@ -59,6 +59,11 @@ jobs:
             echo "New version found, building." 
             echo "new_version=${LATEST_UPSTREAM_VERSION}" >> "${GITHUB_OUTPUT}"
           fi
+
+      - name: Install other dependencies
+        if: steps.version_check.outputs.new_version
+        run: |
+          apt update && apt install -y dpkg-dev fakeroot rsync openssh-client apt-utils gpg wget git
 
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
