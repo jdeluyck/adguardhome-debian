@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Install basic dependencies
         run: |
-          apt update && apt install -y curl jq nodejs
+          apt update && apt install -y curl jq nodejs git
 
       - name: Add CA cert
         run: |
@@ -64,7 +64,7 @@ jobs:
       - name: Install other dependencies
         if: steps.version_check.outputs.new_version
         run: |
-          apt update && apt install -y dpkg-dev fakeroot rsync openssh-client apt-utils gpg wget git
+          apt update && apt install -y dpkg-dev fakeroot rsync openssh-client apt-utils gpg wget
 
       - name: Sync old repo
         if: steps.version_check.outputs.new_version
@@ -125,7 +125,6 @@ jobs:
       - name: Update version file
         if: steps.version_check.outputs.new_version
         run: |
-          cd ${GITHUB_WORKSPACE}
           echo "${{ steps.version_check.outputs.new_version }}" > LATEST_PACKAGED_VERSION
 
           git config --global user.name "Forgejo action"
